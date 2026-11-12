@@ -1,0 +1,118 @@
+// Prisma schema — PostgreSQL. Supabase Auth owns identity (auth.users);
+// this DB owns Sudharo business records. Never store passwords here.
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+
+enum Role { PROVIDER CUSTOMER ADMIN }
+enum RequirementStatus { OPEN AWARDED CLOSED EXPIRED }
+enum BidStatus { SENT ACCEPTED REJECTED }
+enum JobStatus { PENDING IN_PROGRESS COMPLETED CANCELLED }
+enum QuotationStatus { DRAFT SENT ACCEPTED REJECTED }
+
+model Provider {
+  id String @id // = Supabase auth user id (UUID)
+  email String @unique
+  name String
+  phone String?
+  city String?
+  categories String[] @default([])
+  experienceYears Int @default(0)
+  about String?
+  verified Boolean @default(false)
+  createdAt DateTime @default(now())
+  bids Bid[]
+  jobs Job[]
+  quotations Quotation[]
+  portfolio PortfolioItem[]
+}
+
+model Requirement {
+  id String @id @default(uuid())
+  title String
+  category String
+  location String
+  budgetMin Int
+  budgetMax Int
+  description String
+  deadline DateTime
+  customerId String
+  status RequirementStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  bids Bid[]
+  job Job?
+}
+
+model Bid {
+  id String @id @default(uuid())
+  requirementId String
+  requirement Requirement @relation(fields: [requirementId], references: [id])
+  providerId String
+  provider Provider @relation(fields: [providerId], references: [id])
+  amount Int
+  days Int
+  notes String?
+  status BidStatus @default(SENT)
+  createdAt DateTime @default(now())
+  @@unique([requirementId, providerId]) // one bid per provider per requirement
+}
+
+model Job {
+  id String @id @default(uuid())
+  requirementId String @unique
+  requirement Requirement @relation(fields: [requirementId], references: [id])
+  providerId String
+  provider Provider @relation(fields: [providerId], references: [id])
+  customerId String
+  amount Int
+  status JobStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  quotations Quotation[]
+  completions CompletionVerification[]
+}
+
+model Quotation {
+  id String @id @default(uuid())
+  jobId String
+  job Job @relation(fields: [jobId], references: [id])
+  providerId String
+  provider Provider @relation(fields: [providerId], references: [id])
+  title String
+  labour Int
+  material Int
+  other Int
+  timelineDays Int
+  terms String
+  version Int @default(1)
+  status QuotationStatus @default(DRAFT)
+  createdAt DateTime @default(now())
+  // New version on revision; never overwrite an accepted quotation.
+}
+
+model CompletionVerification {
+  id String @id @default(uuid())
+  jobId String
+  job Job @relation(fields: [jobId], references: [id])
+  otpHash String // hash only — never store the plain OTP
+  expiresAt DateTime
+  attempts Int @default(0)
+  verified Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PortfolioItem {
+  id String @id @default(uuid())
+  providerId String
+  provider Provider @relation(fields: [providerId], references: [id])
+  title String
+  category String
+  imageUrl String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+  actorId String
+  action String // BID_ACCEPTED, QUOTATION_SENT, OTP_VERIFIED, JOB_COMPLETED…
+  entityId String
+  createdAt DateTime @default(now())
+}

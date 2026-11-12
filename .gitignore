@@ -1,0 +1,11 @@
+*.iml
+.gradle/
+local.properties
+**/local.properties
+**/google-services.json
+build/
+node_modules/
+dist/
+.env
+*.keystore
+.DS_Store

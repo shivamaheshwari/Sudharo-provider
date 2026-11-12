@@ -1,0 +1,4 @@
+# Copy to local.properties (never commit it). Blank = local demo mode, app still works.
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+API_BASE_URL=https://api.sudharo.in/api/v1/
