@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** One ViewModel per feature area would be ideal; this single holder keeps
- *  the first build simple and is split in presentation/* by feature in v1.1.
+ *  the first build simple and is split by feature in v1.1.
  *  All state is StateFlow, collected lifecycle-aware in Compose. */
 class ProviderViewModel(private val repo: SudharoRepository) : ViewModel() {
     val demoMode: Boolean get() = repo.demoMode
