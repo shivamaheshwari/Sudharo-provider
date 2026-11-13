@@ -191,10 +191,10 @@ private fun SudharoApp() {
     }
     // Surface repository/ViewModel messages (auth errors, bid saved, PDF saved…)
     LaunchedEffect(vmMessage) { vmMessage?.let { toast = it; vm.clearMessage() } }
-    toast?.let {
-        LaunchedEffect(it) { kotlinx.coroutines.delay(2800); toast = null }
+    toast?.let { message ->
+        LaunchedEffect(message) { kotlinx.coroutines.delay(2800); toast = null }
         SnackbarHost(hostState = remember { SnackbarHostState() }, modifier = Modifier.padding(12.dp)) {
-            Snackbar { Text(it) }
+            Snackbar { Text(message) }
         }
     }
 }
